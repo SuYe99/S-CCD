@@ -70,7 +70,7 @@ If no error message, then you should be ready to go.
 #### 3.1.3 CSV-based processing
 S-CCD package supports four processing modes: 1) single pixel; 2) single scanline; 3) tile-based processing; 4) csv-based processing
 It is recommended to use csv-based processing and testing csv to make a quick testing on the S-CCD package for the first time. /YOUR_SCCD_DIRECTORY/s-ccd/python/csvbased_example.py is an example for processing /YOUR_SCCD_DIRECTORY/s-ccd/test/spectral_344_3964_obs.csv. Please change Line 14 and 15 to your own directory, and run. If successfully, you will see the continuous changes of three states as S-CCD model each component as stochastic process, and breakpoint detected by S-CCD associated with West Fork fire highlighted as black.
-![Figure_1.png](:storage/dfd7c4e3-7510-43c3-b433-3f097feb8d00/4f6791d0.png)
+![S-CCD-sample-result](https://github.com/SuYe99/S-CCD/tree/devel/test/spectral_336_3980_obs.png)
 How to make your own csv? Please see Q&A at the end.
 #### 3.1.4 Single-pixel/single-scanline processing
 You can also run single-pixel processing by inputing column and row number for your interested location, as well as  the ENVI image folders produced by AutoPrepareDataARD.py. An example to run and visualize result can be seen as in /YOUR_SCCD_DIRECTORY/s-ccd/python/singlepixel_example.py
