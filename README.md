@@ -1,4 +1,4 @@
-# SCCD
+# S-CCD
 
 # Stochastic Continuous Change Detection (V0.4)
 ### Authors: Su Ye, John Rogan and Zhe Zhu
