@@ -4,9 +4,9 @@
 ### Authors: Su Ye, John Rogan and Zhe Zhu
 #### Maintainer: Su Ye (remotesensingsuy@gmail.com)
 History
-- Version 0.4: S-CCD paper (10/10/2020); supporting both HPC and Desktop environment; adding python interface; fixed numerous discrepancies with matlab COLD
+- Version 0.4: S-CCD paper (11/15/2020); supporting both HPC and Desktop environment; adding python interface; fixed discrepancies with matlab COLD (the breakpoint discrepancy is within ~2%, and coefficent difference is within ~2%)
 - Version 0.3: replace all openmp functions with mpi functions (06/17/2019)
-- Version 0.2: Put two non-lasso bands back for modeling; fixed some bugs (05/16/2019)
+- Version 0.2: Put band 1 and band 7 back for modeling; fixed some bugs (05/16/2019)
 - Version 0.1: Original development (11/27/2018)
 
 S-CCD exists to provide an efficient implementation of S-CCD and COLD algorithm 
@@ -80,7 +80,6 @@ Please take reference on /YOUR_SCCD_DIRECTORY/S-CCD/python/tilebased_processing.
 
 #### 3.1.6 COLD algorithm
 This package also provides C-based implementation for COLD algorithm. Please use /YOUR_SCCD_DIRECTORY/S-CCD/python/csvbased_example_COLD.py as example.To switch from S-CCD to COLD, just simply change the corresponding inputted parameter for 'py_sccd' function, i.e., 'method', from '2' to '1'.
-Note: one discrepancy between C-implemented and MATLAB-implment COLD is that the ordinal dates outputed by two packages are 366 day offset. The reason is that Matlab counts the first day as '01-01-0000', while C version counts the first day as '01-01-0001' which aligned with 'fromordinal' and 'toordinal' python function 
 
 ### 3.2 Run S-CCD without python under desktop environment
 #### 3.2.1 Compile package:
@@ -104,7 +103,13 @@ make -f Makefile_exe clean
 ### 3.3 Run S-CCD program under HPC environment
 Download the newest S-CCD repo
 ```
+
 cd /YOUR_SCCD_DIRECTORY/S-CCD
+module load gcc/5.4.0-alt
+module load zlib/1.2.11
+module load java/1.8.0_162
+module load mpi/openmpi/3.1.0-gcc 
+module load gsl/2.4
 make -f Makefile_hpc
 make -f Makefile_hpc install
 ```
@@ -135,4 +140,9 @@ When you generated your own CSV, please follows the column order as 'blue, green
 #define CFMASK_FILL  255
 #define IMAGE_FILL -9999
 ```
-For 'sensor' column, it is not useful at current stage (we remained it for future development). You can assign random values to this column  
+For 'sensor' column, it is not useful at current stage (we remained it for future development). You can assign random values to this column
+
+##### Q4: error "No module named "distutils.core'" for compiling python package
+```
+sudo apt-get install python3-distutils
+```  

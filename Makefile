@@ -13,7 +13,7 @@ RM = rm -f
 MV = mv
 CGLAGS = -fPIC -Wall -Wextra -g 
 LDFLAGS = -shared
-FFLAGS = -g
+FFLAGS = -g -fPIC
 LFLAGS = -fopenmp
 
 # Define the include files

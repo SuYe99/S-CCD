@@ -14,7 +14,7 @@
 #define MAX_NUM_C 8       /* Maximum number of coefficients           */
 #define N_TIMES 3         /* number of clear observations/coefficients*/
 #define NUM_YEARS 365.25  /* average number of days per year          */
-#define NUM_FC 100       /* Values change with number of pixels run  */
+#define NUM_FC 40       /* Values change with number of pixels run  */
 #define T_CONST 4.42      /* Threshold for cloud, shadow, and snow detection */
                           /* Old T_CONST = 4.89 SY 11/14/2018         */
 #define MIN_YEARS 1       /* minimum year for model intialization     */
@@ -46,7 +46,7 @@
 /* from misc.c */
 /* 12-31-1972 is 720258 in julian day since year 0001 */
 /* matlab use 720624 since year 0000 */
-#define JULIAN_DATE_LAST_DAY_1972 720258
+#define JULIAN_DATE_LAST_DAY_1972 720624
 #define LANDSAT_START_YEAR 1973
 #define LEAP_YEAR_DAYS 366
 #define NON_LEAP_YEAR_DAYS 365
@@ -206,3 +206,5 @@
 
 #define ORDINALDAY_19710101 719528
 #define JULY1ST_DOY 183
+
+#define CPUS_PER_TASK 2
