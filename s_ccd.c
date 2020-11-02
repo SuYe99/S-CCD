@@ -308,16 +308,16 @@ int step1_ssm_initialize(
     /********************************************************************************************/
     /* first step: update a and p between prev_i_break - 1(included) and stable_start(not included) */
     /********************************************************************************************/
-    if(b_fastmode==FALSE)
-    {
-        for(i = prev_break_date; i < clrx[stable_start]; i++)
-        {
-                level_state_records[i_b][i - starting_date] = -9999.0;
-                annual_state_records[i_b][i - starting_date] = -9999.0;
-                semi_state_records[i_b][i - starting_date] = -9999.0;
-                third_state_records[i_b][i - starting_date] = -9999.0;
-        }
-    }
+//    if(b_fastmode == FALSE)
+//    {
+//        for(i = prev_break_date; i < clrx[stable_start]; i++)
+//        {
+//                level_state_records[i_b][i - starting_date] = NA_VALUE;
+//                annual_state_records[i_b][i - starting_date] = NA_VALUE;
+//                semi_state_records[i_b][i - starting_date] = NA_VALUE;
+//                third_state_records[i_b][i - starting_date] = NA_VALUE;
+//        }
+//    }
 
 
 
@@ -1314,7 +1314,7 @@ int step1_ccd_initialize
         /*                                            */
         /**********************************************/
 
-        for(i_ini = *i_start - 1; i_ini >= *prev_i_break; i_ini--) // SY 09192018
+        for(i_ini = *i_start - 2; i_ini >= *prev_i_break - 1; i_ini--) // SY 09192018
         {
             if ((*i_start - *prev_i_break) < conse)
             {
@@ -1363,7 +1363,7 @@ int step1_ccd_initialize
             /******************************************/
 
             vec_magg_min = 9999.0;
-            for (i_conse = 0; i_conse < ini_conse; i_conse++) // SY 09192018
+            for (i_conse = 1; i_conse < ini_conse + 1; i_conse++) // SY 09192018
             {
                 v_dif_norm = 0.0;
                 for (i_b = 0; i_b < n_total_variable; i_b++)
@@ -1378,9 +1378,9 @@ int step1_ccd_initialize
                     // SY 09192018 moving fitting into (i_b == focus_blist[b])to save time //
                     // SY 02/13/2019 delete these speed-up modification as non-lasso bands
                     // are important for change agent classification
-                    auto_ts_predict(clrx, fit_cft, update_num_c, i_b, i_ini-i_conse,
-                                    i_ini-i_conse, &ts_pred_temp);
-                    v_dif_mag[i_b][i_conse] = (double)clry[i_b][i_ini-i_conse] -
+                    auto_ts_predict(clrx, fit_cft, update_num_c, i_b, i_ini-i_conse+1,
+                                    i_ini-i_conse+1, &ts_pred_temp);
+                    v_dif_mag[i_b][i_conse-1] = (double)clry[i_b][i_ini-i_conse+1] -
                                        ts_pred_temp;// SY 09192018
 
                     /**********************************/
@@ -1407,18 +1407,18 @@ int step1_ccd_initialize
                             /*                        */
                             /**************************/
 
-                            v_diff[b][i_conse] = v_dif_mag[i_b][i_conse] // SY 09192018
+                            v_diff[b][i_conse-1] = v_dif_mag[i_b][i_conse-1] // SY 09192018
                                                           / mini_rmse;
-                            v_dif_norm += v_diff[b][i_conse] * v_diff[b][i_conse]; // SY 09192018
+                            v_dif_norm += v_diff[b][i_conse-1] * v_diff[b][i_conse-1]; // SY 09192018
                       }
                    }
                 }
 
-                vec_magg[i_conse] = v_dif_norm; // SY 09192018
+                vec_magg[i_conse-1] = v_dif_norm; // SY 09192018
 
-                if (vec_magg_min > vec_magg[i_conse])
+                if (vec_magg_min > vec_magg[i_conse-1])
                 {
-                    vec_magg_min =  vec_magg[i_conse]; // SY 09192018
+                    vec_magg_min =  vec_magg[i_conse-1]; // SY 09192018
                 }
             }
 
@@ -1456,7 +1456,7 @@ int step1_ccd_initialize
             /**************************************/
             *i_start_copy = *i_start_copy - (*i_start - i_ini -1);
 
-            *i_start = i_ini;  // SY 09202018
+            *i_start = i_ini + 1;
 
             /******************************************/
             /*                                        */
@@ -1481,7 +1481,8 @@ int step1_ccd_initialize
     /**************************************************/
     /* fit all curve 09102019 SY */
     //if ((*num_curve == 0 && *i_start - *i_dense >= conse)||(*i_start - *prev_i_break >= MIN_NUM_C * N_TIMES && clrx[*i_start]- clrx[*prev_i_break] > NUM_YEARS)) // change conse to MIN_NUM_C*times
-    if ((*num_curve == 0 && *i_start - *i_dense >= SCCD_MAX_NUM_C * N_TIMES) ||(*num_curve > 0 && *i_start  - *prev_i_break >= SCCD_MAX_NUM_C * N_TIMES && clrx[*i_start]- clrx[*prev_i_break] > 1.5 * NUM_YEARS)) // change conse to MIN_NUM_C*time
+    //if ((*num_curve == 0 && *i_start - *i_dense >= SCCD_MAX_NUM_C * N_TIMES) ||(*num_curve > 0 && *i_start  - *prev_i_break >= SCCD_MAX_NUM_C * N_TIMES && clrx[*i_start]- clrx[*prev_i_break] > 1.5 * NUM_YEARS)) // change conse to MIN_NUM_C*time
+    if(*num_curve == 0 && *i_start - *i_dense > conse)
     {
         /**********************************************/
         /*                                            */
@@ -3758,7 +3759,7 @@ int step3_processingend
     w2 = 2.0 * w;
     int conse_end = *end - cur_i;
     if(conse_end < CONSE)
-        t_cg_adjust = 11.0705;
+        t_cg_adjust = X2(n_focus_variable, probability_threshold);
     else
         t_cg_adjust = X2(n_focus_variable, 1 - pow(1 - probability_threshold, (double)CONSE / (double)conse_end));
     //double t_cg_adjust = 11.07;
@@ -4087,19 +4088,19 @@ int step3_processingend
             rec_cg[*num_curve].rmse[i_b] = sqrtf(sum_square_vt[i_b] / (valid_count[i_b]));
             rec_cg[*num_curve].magnitude[i_b] = 0;
 
-            if (FALSE == b_fastmode)
-            {
-                for (k = clrx[cur_i]; k < clrx[*end - 1]+1; k++)
-                {
+//            if (FALSE == b_fastmode)
+//            {
+//                for (k = clrx[cur_i]; k < clrx[*end - 1]+1; k++)
+//                {
 
-                    level_state_records[i_b][k-starting_date] = -9999.0;
-                    annual_state_records[i_b][k-starting_date] = -9999.0;
-                    semi_state_records[i_b][k-starting_date] = -9999.0;
-                    third_state_records[i_b][k-starting_date] = -9999.0;
-                }
+//                    level_state_records[i_b][k-starting_date] = NA_VALUE;
+//                    annual_state_records[i_b][k-starting_date] = NA_VALUE;
+//                    semi_state_records[i_b][k-starting_date] = NA_VALUE;
+//                    third_state_records[i_b][k-starting_date] = NA_VALUE;
+//                }
 
 
-            }
+//            }
 
         }
 
@@ -4354,19 +4355,17 @@ int step3_processingend
 //            else
 
 
-            if (FALSE == b_fastmode)
-            {
-                for (k = clrx[prev_i_break]; k < clrx[*end-1]+1; k++)
-                {
+//            if (FALSE == b_fastmode)
+//            {
+//                for (k = clrx[prev_i_break]; k < clrx[*end-1]+1; k++)
+//                {
 
-                    level_state_records[i_b][k-starting_date] = -9999.0;
-                    annual_state_records[i_b][k-starting_date] = -9999.0;
-                    semi_state_records[i_b][k-starting_date] = -9999.0;
-                    third_state_records[i_b][k-starting_date] = -9999.0;
-                }
-
-
-            }
+//                    level_state_records[i_b][k-starting_date] = NA_VALUE;
+//                    annual_state_records[i_b][k-starting_date] = NA_VALUE;
+//                    semi_state_records[i_b][k-starting_date] = NA_VALUE;
+//                    third_state_records[i_b][k-starting_date] = NA_VALUE;
+//                }
+//            }
         }
     }else if (bl_train_complete == 2)
     {
@@ -4937,6 +4936,7 @@ int sccd_stand_procedure
     /* starting date used to record state values*/
     starting_date = clrx[0];
     end = n_clr;
+
     level_state_records = (double**) allocate_2d_array (user_n_total_variable,
                                              clrx[end - 1] - starting_date + 1, sizeof(double));
     if (level_state_records == NULL)
@@ -5038,6 +5038,21 @@ int sccd_stand_procedure
             focus_blist[k] = user_focus_blist[k];
     }
 
+
+    // initialization
+    if(b_fastmode==FALSE)
+    {
+        for (i_b = 0; i_b < user_n_total_variable; i_b++)
+        {
+            for(k = 0; k < clrx[end - 1] - starting_date + 1; k++)
+            {
+                    level_state_records[i_b][k] = NA_VALUE;
+                    annual_state_records[i_b][k] = NA_VALUE;
+                    semi_state_records[i_b][k] = NA_VALUE;
+                    third_state_records[i_b][k] = NA_VALUE;
+            }
+        }
+    }
 
     /**************************************************************/
     /*                                                            */

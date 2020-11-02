@@ -205,7 +205,7 @@ int sccd_executor(
     //int variable_count = 0;
     int n_focus_variable = 0;
     int n_total_variable = TOTAL_IMAGE_BANDS;
-    int focus_blist[TOTAL_IMAGE_BANDS + TOTAL_INDICES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int focus_blist[TOTAL_IMAGE_BANDS + TOTAL_INDICES] = {0, 0, 0, 0, 0, 0, 0};
     bool NDVI_INCLUDED = FALSE;
     bool NBR_INCLUDED = FALSE;
     bool RGI_INCLUDED = FALSE;
@@ -1196,8 +1196,8 @@ int stand_procedure
     int *clrx;                  /* I: clear pixel curve in X direction (date)             */
     float **clry;               /* I: clear pixel curve in Y direction (spectralbands)    */
     double mean_angle;           /* I: mean angle of vec_diff                              */
-    int i_update = 1;
     double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
+    int pre_end;
 
     fit_cft = (double **) allocate_2d_array (TOTAL_IMAGE_BANDS, LASSO_COEFFS,
                                          sizeof (double));
@@ -1902,7 +1902,7 @@ int stand_procedure
                     /*                                            */
                     /**********************************************/
 
-                    for(i_ini = i_start-1; i_ini >= i_break; i_ini--) // SY 09192018
+                    for(i_ini = i_start - 2; i_ini >= i_break - 1; i_ini--) // SY 09192018
                     {
                         if ((i_start - i_break) < adj_conse)
                         {
@@ -1967,9 +1967,9 @@ int stand_procedure
                                 // SY 09192018 moving fitting into (i_b == lasso_blist[b])to save time //
                                 // SY 02/13/2019 delete these speed-up modification as non-lasso bands
                                 // are important for change agent classification
-                                auto_ts_predict(clrx, fit_cft, MIN_NUM_C, i_b, i_ini-i_conse,
-                                                i_ini-i_conse, &ts_pred_temp);
-                                v_dif_mag[i_b][i_conse-1] = (double)clry[i_b][i_ini-i_conse] -
+                                auto_ts_predict(clrx, fit_cft, MIN_NUM_C, i_b, i_ini-i_conse+1,
+                                                i_ini-i_conse+1, &ts_pred_temp);
+                                v_dif_mag[i_b][i_conse-1] = (double)clry[i_b][i_ini-i_conse+1] -
                                                    ts_pred_temp;// SY 09192018
                                 // printf("auto_ts_predict finished \n");
                                 /**********************************/
@@ -2053,25 +2053,7 @@ int stand_procedure
                             i--;
                             end--;
 
-//SY 09182018
-//                            /**************************************/
-//                            /*                                    */
-//                            /* Update i_start if i_ini is not a   */
-//                            /* confirmed break.                   */
-//                            /*                                    */
-//                            /**************************************/
-
-//                            i_start = i_ini;
                         }
-
-                        /**************************************/
-                        /*                                    */
-                        /* Update i_start if i_ini is not a   */
-                        /* confirmed break.                   */
-                        /*                                    */
-                        /**************************************/
-
-                        i_start = i_ini;  // SY 09202018
 
                         /******************************************/
                         /*                                        */
@@ -2087,7 +2069,17 @@ int stand_procedure
                                           FUNC_NAME, FAILURE);
                         }
 
+                        /**************************************/
+                        /*                                    */
+                        /* Update i_start if i_ini is not a   */
+                        /* confirmed break.                   */
+                        /*                                    */
+                        /**************************************/
+
+                        i_start = i_ini + 1;
+
                     } // end for (i_ini = i_start-1; i_ini >= i_break; i_ini--)
+
                 }    // end for if (i_start > i_break)
 
                 /**************************************************/
@@ -2278,6 +2270,8 @@ int stand_procedure
 
                     i_count = clrx[i-1] - clrx[i_start-1];
 
+                    pre_end = i;
+
                     for (i_b = 0; i_b < TOTAL_IMAGE_BANDS; i_b++)
                     {
 
@@ -2441,105 +2435,95 @@ int stand_procedure
                 } // end for if (i_count == 0 || i_span <= (N_TIMES * MAX_NUM_C))
                 else // update frequency
                 {
-                    if ((double)(clrx[i-1] - clrx[i_start-1]) >= NUM_YEARS)
-                    //if ((double)(clrx[i-1] - clrx[i_start-1]) >= 1.33*(double)i_count)
-                    //if ((double)(clrx[i-1] - clrx[i_start-1]) >= (double)i_count + NUM_YEARS) // update every year
+                    if(i - pre_end >= UPDATE_FREQ)
                     {
-                        if(i_update == UPDATE_FREQ || i_update > UPDATE_FREQ)
+                        /******************************************/
+                        /*                                        */
+                        /* Update coefficent at each iteration year. */
+                        /*                                        */
+                        /******************************************/
+
+                        i_count = clrx[i-1] - clrx[i_start-1];
+                        pre_end = i;
+                        for (i_b = 0; i_b < TOTAL_IMAGE_BANDS; i_b++)
                         {
-                            /******************************************/
-                            /*                                        */
-                            /* Update coefficent at each iteration year. */
-                            /*                                        */
-                            /******************************************/
-
-                            /* reset i_update*/
-                            i_update = 1;
-                            i_count = clrx[i-1] - clrx[i_start-1];
-
-                            for (i_b = 0; i_b < TOTAL_IMAGE_BANDS; i_b++)
+                            status = auto_ts_fit(clrx, clry, i_b, i_b, i_start-1, i-1, update_num_c,
+                                             fit_cft, &rmse[i_b], rec_v_dif);
+                            // printf("auto_ts_fit2 finished \n", i);
+                            if (status != SUCCESS)
                             {
-                                status = auto_ts_fit(clrx, clry, i_b, i_b, i_start-1, i-1, update_num_c,
-                                                 fit_cft, &rmse[i_b], rec_v_dif);
-                                // printf("auto_ts_fit2 finished \n", i);
-                                if (status != SUCCESS)
-                                {
-                                    RETURN_ERROR ("Calling auto_ts_fit for change detection with "
-                                         "enough observations\n", FUNC_NAME, FAILURE);
-                                }
-
-
+                                RETURN_ERROR ("Calling auto_ts_fit for change detection with "
+                                     "enough observations\n", FUNC_NAME, FAILURE);
                             }
 
-                            /******************************************/
-                            /*                                        */
-                            /* Record fitted coefficients.            */
-                            /*                                        */
-                            /******************************************/
-                            for (i_b = 0; i_b < TOTAL_IMAGE_BANDS; i_b++)
-                            {
 
-                                for (k = 0; k < LASSO_COEFFS; k++)
-                                {
-                                    /**********************************/
-                                    /*                                */
-                                    /* Record fitted coefficients.    */
-                                    /*                                */
-                                    /**********************************/
-
-                                    rec_cg[*num_curve].coefs[i_b][k] = fit_cft[i_b][k];
-                                }
-                                /**************************************/
-                                /*                                    */
-                                /* Record rmse of the pixel.          */
-                                /*                                    */
-                                /**************************************/
-
-                                rec_cg[*num_curve].rmse[i_b] = rmse[i_b];
-
-
-                            }
-                            /******************************************/
-                            /*                                        */
-                            /* Record number of observations, fit     */
-                            /* category.                              */
-                            /*                                        */
-                            /******************************************/
-
-                            rec_cg[*num_curve].num_obs = i - i_start + 1;
-                            rec_cg[*num_curve].category = 0 + update_num_c;
-
-                            /******************************************/
-                            /*                                        */
-                            /* Clears the IDs_Old buffers.            */
-                            /*                                        */
-                            /******************************************/
-
-                            for (k = 0; k < ids_len; k++)
-                            {
-                                ids_old[k] = 0;
-                            }
-
-                            /******************************************/
-                            /*                                        */
-                            /* IDs that have not been updated.        */
-                            /*                                        */
-                            /******************************************/
-
-                            for (k = 0; k < ids_len; k++)
-                            {
-                                ids_old[k] = ids[k];
-                            }
-                            ids_old_len = ids_len;
-
-                        } //  if(i_update == UPDATE_FREQ || i_update > UPDATE_FREQ)
-                        else
-                        {
-                            i_update ++;
                         }
 
+                        /******************************************/
+                        /*                                        */
+                        /* Record fitted coefficients.            */
+                        /*                                        */
+                        /******************************************/
+                        for (i_b = 0; i_b < TOTAL_IMAGE_BANDS; i_b++)
+                        {
 
-                    }
+                            for (k = 0; k < LASSO_COEFFS; k++)
+                            {
+                                /**********************************/
+                                /*                                */
+                                /* Record fitted coefficients.    */
+                                /*                                */
+                                /**********************************/
+
+                                rec_cg[*num_curve].coefs[i_b][k] = fit_cft[i_b][k];
+                            }
+                            /**************************************/
+                            /*                                    */
+                            /* Record rmse of the pixel.          */
+                            /*                                    */
+                            /**************************************/
+
+                            rec_cg[*num_curve].rmse[i_b] = rmse[i_b];
+
+
+                        }
+                        /******************************************/
+                        /*                                        */
+                        /* Record number of observations, fit     */
+                        /* category.                              */
+                        /*                                        */
+                        /******************************************/
+
+                        rec_cg[*num_curve].num_obs = i - i_start + 1;
+                        rec_cg[*num_curve].category = 0 + update_num_c;
+
+                        /******************************************/
+                        /*                                        */
+                        /* Clears the IDs_Old buffers.            */
+                        /*                                        */
+                        /******************************************/
+
+                        for (k = 0; k < ids_len; k++)
+                        {
+                            ids_old[k] = 0;
+                        }
+
+                        /******************************************/
+                        /*                                        */
+                        /* IDs that have not been updated.        */
+                        /*                                        */
+                        /******************************************/
+
+                        for (k = 0; k < ids_len; k++)
+                        {
+                            ids_old[k] = ids[k];
+                        }
+                        ids_old_len = ids_len;
+
+                    } //  if(i_update == UPDATE_FREQ || i_update > UPDATE_FREQ)
+
+
+
 
                     /**********************************************/
                     /*                                            */
@@ -2609,7 +2593,7 @@ int stand_procedure
                     {
                         matlab_2d_array_norm(rec_v_dif_copy, lasso_blist[b], n_rmse,
                                          &tmpcg_rmse[b]);
-                        tmpcg_rmse[b] /= sqrt(n_rmse - rec_cg[*num_curve].category);
+                        tmpcg_rmse[b] /= sqrt((double)(n_rmse - rec_cg[*num_curve].category));
                     }
 
                     /**********************************************/
@@ -2669,6 +2653,7 @@ int stand_procedure
                                 /* Minimum rmse.                  */
                                 /*                                */
                                 /**********************************/
+
                                 mini_rmse = max((double)adj_rmse[i_b], tmpcg_rmse[b]);
 
                                 /**********************************/
@@ -2690,15 +2675,25 @@ int stand_procedure
                 break_mag = 9999.0;
                 for (m = 0; m < adj_conse; m++)
                 {
-                    //   printf("%f\n", vec_mag[m]);
-
-//                    printf("%f\n", vec_mag[m]);
                     if (break_mag > vec_mag[m])
                     {
                         break_mag = vec_mag[m];
                     }
                 }
 
+//                if(i == 532 - 4){
+//                  for (k = 0; k < TOTAL_IMAGE_BANDS; k++)
+//                    for(j = 0; j < MAX_NUM_C; j++)
+//                        printf("%f\n", fit_cft[k][j]);
+
+//                  for(m = 0; m < n_rmse; m++)
+//                  {
+
+//                      printf("%f\n", d_yr[m]);
+//                      printf("%f\n", rec_v_dif_copy[0][m]);
+
+//                  }
+//                }
                 if ((break_mag > adj_TCG) && (mean_angle < NSIGN))
                 {
 
@@ -2774,14 +2769,6 @@ int stand_procedure
 
                     bl_train = 0;
 
-                    /**********************************************/
-                    /*                                            */
-                    /* rest i_update again.                      */
-                    /*                                            */
-                    /**********************************************/
-
-                    i_update = 1;
-
                 }
 
                 else if (vec_mag[0] > T_MAX_CG)  /*false change*/
@@ -2800,7 +2787,6 @@ int stand_procedure
                     }
 
                     i--;   /* stay & check again after noise removal */
-                    i_update--;
                     end--;
                 }
 

@@ -377,6 +377,8 @@ int main(int argc, char *argv[])
     short int tmp_sensor;
     int interval;
     short int *sensor_buf;
+    double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
+
 
     /* create custom type for CCDC output reccg_type*/
     Output_t rec_cg_scanline_Sample[1]; /* for calculating disp */
@@ -831,10 +833,8 @@ int main(int argc, char *argv[])
         // for debug
 //        current_row = 58;
         //j = new_n_block - 1;
-        if (process_id == 0)
-            current_row = j;
-        else
-            current_row = process_id + j * interval;
+
+        current_row = process_id + j * interval;
 
         for (i = 0 ; i < n_cols; i++)
         {
@@ -996,6 +996,7 @@ int main(int argc, char *argv[])
 
 //           }
 
+
             if (METHOD == CCD){
                 rec_cg = malloc(NUM_FC * sizeof(Output_t));
                 if (rec_cg == NULL)
@@ -1009,7 +1010,7 @@ int main(int argc, char *argv[])
 //                       valid_scene_count_scanline[i_col], i_col, current_row, probability_threshold);
                 result = ccd(tmp_buf_2d, fmask_buf_scanline[i_col], valid_date_array_scanline[i_col],
                              valid_scene_count_scanline[i_col], rec_cg, &num_fc, n_cols,
-                             i_col + 1, current_row + 1, probability_threshold);
+                             i_col + 1, current_row + 1, probability_threshold, s_tcg);
 
                 for(i = 0; i < num_fc; i++)
                 {

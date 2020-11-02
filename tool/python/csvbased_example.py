@@ -56,7 +56,7 @@ plot_state = pd.read_csv(os.path.join(out_path, basename + '_StateRecords_' + bn
 plot_state.columns = ['Dates', 'Trend', 'Annual', 'Semiannual', 'Foutmonth',
                       'obs', 'rmse']
 plot_state['predicted'] = plot_state['Trend'] + plot_state['Annual'] +plot_state['Semiannual']
-DatesFromOrdinal = [pd.Timestamp.fromordinal(row) for row in plot_state["Dates"]]
+DatesFromOrdinal = [pd.Timestamp.fromordinal(row - 366) for row in plot_state["Dates"]]
 plot_state.loc[:,'Dates'] = DatesFromOrdinal
 
 # read obs records
@@ -64,7 +64,7 @@ plot_obs = pd.read_csv(in_path)
 plot_obs.columns = ['Dates', 'Blue', 'Green', 'Red', 'NIR', \
                     'SWIR1', 'SWIR2', 'BT', 'QA', 'sensor']
 plot_obs_clean = plot_obs.loc[plot_obs['QA'] == 0]
-DatesFromOrdinal = [pd.Timestamp.fromordinal(row)
+DatesFromOrdinal = [pd.Timestamp.fromordinal(row - 366)
                     for row in plot_obs_clean["Dates"]]
 plot_obs_clean.loc[:,'Dates'] = DatesFromOrdinal
 
@@ -104,19 +104,19 @@ ax4.plot('Dates', bandname, 'y+', data=plot_obs_clean, label='Actual')
 # plot the break
 for i in range(len(ccd_plot) - 1):
     if(ccd_plot[i]['category'] % 10 == 1):
-        ax1.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), color='k')
+        ax1.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), color='k')
 
-        ax2.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), color='k')
-        ax3.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), color='k')
-        ax4.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), color='k')
-        ax4.text(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), ax4.get_ylim()[1],
-            str(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']).date()),
+        ax2.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), color='k')
+        ax3.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), color='k')
+        ax4.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), color='k')
+        ax4.text(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), ax4.get_ylim()[1],
+            str(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366).date()),
              transform=ax4.transData)
     else:
-        ax1.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), color='r')
-        ax2.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), color='r')
-        ax3.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), color='r')
-        ax4.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), color='r')
-        ax4.text(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']), ax4.get_ylim()[1],
-            str(pd.Timestamp.fromordinal(ccd_plot[i]['t_break']).date()),
+        ax1.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), color='r')
+        ax2.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), color='r')
+        ax3.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), color='r')
+        ax4.axvline(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), color='r')
+        ax4.text(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366), ax4.get_ylim()[1],
+            str(pd.Timestamp.fromordinal(ccd_plot[i]['t_break'] - 366).date()),
              transform=ax4.transData)
