@@ -1,4 +1,0 @@
-make clean
-make
-make install
-make -C ./tool/python
