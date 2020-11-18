@@ -145,7 +145,7 @@
 //#define S_T_MAX_CG 4.266 // standard normalization 0.99999
 //#define S_T_MAX_CG  5.13   // standard normalization 0.9999999
 
-#define S_T_MAX_CG 25.7448  // prob = 1-1e-4
+//#define S_T_MAX_CG 25.7448  // prob = 1-1e-4
 #define T_MAX_CG 30.8562  // prob = 1-1e-5
 //#define S_T_MAX_CG 20.5150  // prob = 1-1e-3
 //#define S_T_MAX_CG 30.8562  // prob = 1-1e-5

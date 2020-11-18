@@ -8,8 +8,13 @@ pysccd: setup.py pysccd.pyx libsccd.so
 	# cp libsccd.so $(PYTHON_LIB_DIR)
 	# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(PYTHON_SCCDPROJECT_DIR)
 	# cp pysccd.pyx $(PYTHON_PACKAGE_DIR)
+	cp pysccd*.so /home/coloury/Dropbox/Documents/PyCharmProjects/Dissertation
+	cp libsccd.so /home/coloury/miniconda3/envs/sccd/lib
+
 clean:
 	rm pysccd*.so
+	rm /home/coloury/Dropbox/Documents/PyCharmProjects/Dissertation/pysccd*.so
+	rm /home/coloury/miniconda3/envs/sccd/lib/libsccd.so
 	# rm $(PYTHON_SCCDPROJECT_DIR)/pysccd*.so
 	# rm libsccd.so
 	# rm $(PYTHON_SCCDPROJECT_DIR)/libsccd.so

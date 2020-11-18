@@ -85,8 +85,8 @@ typedef struct
     double coefs[TOTAL_IMAGE_BANDS][SCCD_MAX_NUM_C];
                            /*  coefficients for each time series model for each
                                spectral band*/
-    double obs_disturb[TOTAL_IMAGE_BANDS];
-    double state_disturb[TOTAL_IMAGE_BANDS][SCCD_MAX_NUM_C - 1];
+//    double obs_disturb[TOTAL_IMAGE_BANDS];
+//    double state_disturb[TOTAL_IMAGE_BANDS][SCCD_MAX_NUM_C - 1];
     double rmse[TOTAL_IMAGE_BANDS];
 
     double magnitude[TOTAL_IMAGE_BANDS];/* the magnitude of change (difference between model

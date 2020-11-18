@@ -110,11 +110,11 @@ int sccd
         //rec_cg[i].land_type = 0;
 
         for (j = 0; j < TOTAL_IMAGE_BANDS+TOTAL_INDICES; j++){
-            rec_cg[i].obs_disturb[j] = NA_VALUE;
+//            rec_cg[i].obs_disturb[j] = NA_VALUE;
             rec_cg[i].rmse[j] = NA_VALUE;
             rec_cg[i].magnitude[j] = NA_VALUE;
             for(k = 0; k < SCCD_MAX_NUM_C - 1; k++){
-                rec_cg[i].state_disturb[j][k] = NA_VALUE;
+//                rec_cg[i].state_disturb[j][k] = NA_VALUE;
                 rec_cg[i].coefs[j][k] = NA_VALUE;
             }
             rec_cg[i].coefs[j][SCCD_MAX_NUM_C - 1] = NA_VALUE;
@@ -640,7 +640,8 @@ int step1_ccd_initialize
     double *rmse,                      /* O: Root Mean Squared Error array.        */
     int n_focus_variable,
     int n_total_variable,
-    int* focus_blist
+    int* focus_blist,
+    int min_days_conse
 )
 {
     int status;
@@ -1482,7 +1483,7 @@ int step1_ccd_initialize
     /* fit all curve 09102019 SY */
     //if ((*num_curve == 0 && *i_start - *i_dense >= conse)||(*i_start - *prev_i_break >= MIN_NUM_C * N_TIMES && clrx[*i_start]- clrx[*prev_i_break] > NUM_YEARS)) // change conse to MIN_NUM_C*times
     //if ((*num_curve == 0 && *i_start - *i_dense >= SCCD_MAX_NUM_C * N_TIMES) ||(*num_curve > 0 && *i_start  - *prev_i_break >= SCCD_MAX_NUM_C * N_TIMES && clrx[*i_start]- clrx[*prev_i_break] > 1.5 * NUM_YEARS)) // change conse to MIN_NUM_C*time
-    if(*num_curve == 0 && *i_start - *i_dense > conse)
+    if(*num_curve == 0 && *i_start - *i_dense >= CONSE && clrx[*i_start] - clrx[*i_dense] >= min_days_conse)
     {
         /**********************************************/
         /*                                            */
@@ -1704,7 +1705,8 @@ int step1_update_cft
     int *prev_i_break,
     int n_focus_variable,
     int n_total_variable,
-    int* focus_blist
+    int* focus_blist,
+    double t_cg_outelier
 )
 {
     int num_c = SCCD_MAX_NUM_C;
@@ -1895,14 +1897,14 @@ int step1_update_cft
 
         rec_cg[*num_curve].category = 30;
 
-        for(i_b = 0; i_b < n_total_variable; i_b++)
-        {
-            rec_cg[*num_curve].obs_disturb[i_b] = 0;
-            for (k = 0; k < SCCD_MAX_NUM_C - 1; k++)
-            {
-                rec_cg[*num_curve].state_disturb[i_b][k] = 0;
-            }
-        }
+//        for(i_b = 0; i_b < n_total_variable; i_b++)
+//        {
+//            rec_cg[*num_curve].obs_disturb[i_b] = 0;
+//            for (k = 0; k < SCCD_MAX_NUM_C - 1; k++)
+//            {
+//                rec_cg[*num_curve].state_disturb[i_b][k] = 0;
+//            }
+//        }
 
         for (i_b = 0; i_b < n_total_variable; i_b++)
         {
@@ -1957,7 +1959,7 @@ int step1_update_cft
         RETURN_VALUE = CHANGEDETECTED;
 
     }
-    else if (vec_mag[0] > S_T_MAX_CG)  /*false change*/
+    else if (vec_mag[0] > t_cg_outelier)  /*false change*/
     {
         /**********************************************/
         /*                                            */
@@ -2667,19 +2669,19 @@ int step2_KF_ChangeDetection
 
     center_date = (int)(clrx[cur_i + conse - 1] + clrx[cur_i]) / 2;
     //center_date = clrx[cur_i + conse - 1];
-    weight1 = (double)(center_date - *clrx_record1);
-    weight2 = (double)(center_date - *clrx_record2);
-    weight3 = (double)(center_date - *clrx_record3);
-    weight4 = (double)(center_date - *clrx_record4);
+//    weight1 = (double)(center_date - *clrx_record1);
+//    weight2 = (double)(center_date - *clrx_record2);
+//    weight3 = (double)(center_date - *clrx_record3);
+//    weight4 = (double)(center_date - *clrx_record4);
 
 //    weight1 = 1.0 / (double)(center_date - *clrx_record1);
 //    weight2 = 1.0 / (double)(center_date - *clrx_record2);
 //    weight3 = 1.0 / (double)(center_date - *clrx_record3);
 //    weight4 = 0;
-//    weight1 = WEIGHT1;
-//    weight2 = WEIGHT2;
-//    weight3 = WEIGHT3;
-//    weight4 = WEIGHT4;
+    weight1 = WEIGHT1;
+    weight2 = WEIGHT2;
+    weight3 = WEIGHT3;
+    weight4 = WEIGHT4;
 //    if(cur_i == 185){
 //        cur_i = 185;
 //    }
@@ -3250,17 +3252,17 @@ int step2_KF_ChangeDetection
         else
             rec_cg[*num_curve].category = 70;
 
-        for(i_b = 0; i_b < n_total_variable; i_b++)
-        {
-            rec_cg[*num_curve].obs_disturb[i_b] = (double)instance[i_b].H;
-            for (k = 0; k < SCCD_MAX_NUM_C - 1; k++)
-            {
-                if (k < instance[i_b].m)
-                    rec_cg[*num_curve].state_disturb[i_b][k] = (double)gsl_matrix_get(instance[i_b].Q, k, k);
-                else
-                    rec_cg[*num_curve].state_disturb[i_b][k] = 0;
-            }
-        }
+//        for(i_b = 0; i_b < n_total_variable; i_b++)
+//        {
+//            rec_cg[*num_curve].obs_disturb[i_b] = (double)instance[i_b].H;
+//            for (k = 0; k < SCCD_MAX_NUM_C - 1; k++)
+//            {
+//                if (k < instance[i_b].m)
+//                    rec_cg[*num_curve].state_disturb[i_b][k] = (double)gsl_matrix_get(instance[i_b].Q, k, k);
+//                else
+//                    rec_cg[*num_curve].state_disturb[i_b][k] = 0;
+//            }
+//        }
 
         /**********************************************/
         /*                                            */
@@ -4051,14 +4053,14 @@ int step3_processingend
                     third_state_records[i_b][clrx[*end - 1]-starting_date] = -9999;
             }
 
-            rec_cg[*num_curve].obs_disturb[i_b] = (double)instance[i_b].H;
-            for (k = 0; k < SCCD_MAX_NUM_C - 1; k++)
-            {
-                if (k < instance[i_b].m)
-                    rec_cg[*num_curve].state_disturb[i_b][k] = (double)gsl_matrix_get(instance[i_b].Q, k, k);
-                else
-                    rec_cg[*num_curve].state_disturb[i_b][k] = 0;
-            }
+//            rec_cg[*num_curve].obs_disturb[i_b] = (double)instance[i_b].H;
+//            for (k = 0; k < SCCD_MAX_NUM_C - 1; k++)
+//            {
+//                if (k < instance[i_b].m)
+//                    rec_cg[*num_curve].state_disturb[i_b][k] = (double)gsl_matrix_get(instance[i_b].Q, k, k);
+//                else
+//                    rec_cg[*num_curve].state_disturb[i_b][k] = 0;
+//            }
 
             update_cft(i_span, N_TIMES, MIN_NUM_C, MID_NUM_C, SCCD_MAX_NUM_C,
                       num_c, &update_num_c);
@@ -4295,11 +4297,11 @@ int step3_processingend
             for (i_b = 0; i_b < n_total_variable; i_b++)
             {
                 rec_cg[*num_curve].magnitude[i_b] = 0.0;
-                rec_cg[*num_curve].obs_disturb[i_b] = 0.0;
-                for (i = 0; i < SCCD_MAX_NUM_C - 1; i++)
-                {
-                    rec_cg[*num_curve].state_disturb[i_b][i] = 0.0;
-                }
+//                rec_cg[*num_curve].obs_disturb[i_b] = 0.0;
+//                for (i = 0; i < SCCD_MAX_NUM_C - 1; i++)
+//                {
+//                    rec_cg[*num_curve].state_disturb[i_b][i] = 0.0;
+//                }
             }
             i_span = *end - i_start;
             update_cft(i_span, N_TIMES, MIN_NUM_C, MID_NUM_C, SCCD_MAX_NUM_C,
@@ -4390,11 +4392,11 @@ int step3_processingend
             // can't include the last obs (*end - 1)
             // needs to start from the previous break
 //            tmp_q = sum_square_smooth_Q[i_b] / valid_count[i_b] - pow((sum_smooth_Q[i_b] / valid_count[i_b]), 2);
-            rec_cg[*num_curve].obs_disturb[i_b] = 0;
-            for (k = 0; k < SCCD_MAX_NUM_C - 1; k++)
-            {
-                rec_cg[*num_curve].state_disturb[i_b][k] = 0;
-            }
+//            rec_cg[*num_curve].obs_disturb[i_b] = 0;
+//            for (k = 0; k < SCCD_MAX_NUM_C - 1; k++)
+//            {
+//                rec_cg[*num_curve].state_disturb[i_b][k] = 0;
+//            }
 
 
             for(k = 0; k < SCCD_MAX_NUM_C; k ++)
@@ -5088,7 +5090,7 @@ int sccd_stand_procedure
 //                if(*num_curve == 0)
 //                    i_span_min = N_TIMES * MID_NUM_C;
 //                else
-                    i_span_min = N_TIMES * MID_NUM_C;
+                    i_span_min = N_TIMES * MIN_NUM_C;
 
                 status = INCOMPLETE;
                 if((i_span >= i_span_min) && (time_span >= (double)MIN_YEARS))
@@ -5133,7 +5135,7 @@ int sccd_stand_procedure
 
                     status = step1_ccd_initialize(adj_conse, adj_rmse, n_clr, t_cg_adjust, &i_dense, num_curve, clrx,
                                                   clry, &i, &i_start, &i_start_copy, &end, tmp_fit_cft, rec_cg, i_span_min,
-                                                  &prev_i_break, rmse_ini, n_focus_variable, n_total_variable, focus_blist);
+                                                  &prev_i_break, rmse_ini, n_focus_variable, n_total_variable, focus_blist, min_days_conse);
 
                     /**************************************************************/
                     /*                                                            */
@@ -5264,10 +5266,10 @@ int sccd_stand_procedure
                         t_cg_adjust = s_tcg;
 
                     }
-
+                    t_cg_outelier = X2(n_focus_variable, S_T_MAX_CG_PROB);
                     status =  step1_update_cft(adj_conse, adj_rmse, n_clr, t_cg_adjust, clrx, clry, i, i_start,
                                                tmp_fit_cft, rec_cg, rmse_ini, num_curve, end, &prev_i_break,
-                                               n_focus_variable, n_total_variable, focus_blist);
+                                               n_focus_variable, n_total_variable, focus_blist, t_cg_outelier);
                     if(status == CHANGEDETECTED)
                     {
                         rec_cg[*num_curve].num_obs = i_span;
@@ -6173,11 +6175,11 @@ int sccd_inefficientobs_procedure
             /******************************************************/
 
             rec_cg[*num_curve].magnitude[i_b] = 0.0;
-            rec_cg[*num_curve].obs_disturb[i_b] = 0.0;
-            for (i = 0; i < SCCD_MAX_NUM_C - 1; i++)
-            {
-                rec_cg[*num_curve].state_disturb[i_b][i] = 0.0;
-            }
+//            rec_cg[*num_curve].obs_disturb[i_b] = 0.0;
+//            for (i = 0; i < SCCD_MAX_NUM_C - 1; i++)
+//            {
+//                rec_cg[*num_curve].state_disturb[i_b][i] = 0.0;
+//            }
         }
 
         /**********************************************************/
@@ -6348,11 +6350,11 @@ int sccd_inefficientobs_procedure
             /******************************************************/
 
             rec_cg[*num_curve].magnitude[i_b] = 0.0;
-            rec_cg[*num_curve].obs_disturb[i_b] = 0.0;
-            for (i = 0; i < SCCD_MAX_NUM_C - 1; i++)
-            {
-                rec_cg[*num_curve].state_disturb[i_b][i] = 0.0;
-            }
+//            rec_cg[*num_curve].obs_disturb[i_b] = 0.0;
+//            for (i = 0; i < SCCD_MAX_NUM_C - 1; i++)
+//            {
+//                rec_cg[*num_curve].state_disturb[i_b][i] = 0.0;
+//            }
         }
 
         /**********************************************************/

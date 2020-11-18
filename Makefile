@@ -44,6 +44,7 @@ GLMnet: $(SRC) GLMnet.f
 clean: 
 	$(RM) $(BIN)/$(TARGET_LIB)
 	$(RM) $(BIN)/variables
+	$(RM) ./*.o
 	$(RM) $(DST_DIR)/*.o
 	$(RM) $(DST_DIR)/*.a
 

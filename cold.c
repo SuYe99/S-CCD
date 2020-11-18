@@ -2705,7 +2705,7 @@ int stand_procedure
 //                        printf("Change Magnitude = %.2f\n", break_mag - adj_TCG);
 //                    }
 
-                    /**********************************************/rec_cg[*num_curve].change_prob = (double)(adj_conse - id_last) / (double)adj_conse;
+                    /**********************************************/
                     /*                                            */
                     /* Record break time.                        */
                     /*                                            */

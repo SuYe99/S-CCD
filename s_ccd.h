@@ -106,7 +106,8 @@ int step1_ccd_initialize
     double *rmse,                     /* O: Root Mean Squared Error array.        */
     int n_focus_variable,
     int n_total_variable,
-    int* focus_blist
+    int* focus_blist,
+    int min_days_conse
 );
 
 int step1_update_cft
@@ -127,7 +128,8 @@ int step1_update_cft
     int *prev_i_break,
     int n_focus_variable,
     int n_total_variable,
-    int* focus_blist
+    int* focus_blist,
+    double t_cg_outelier
 );
 
 int step1_ssm_initialize(
