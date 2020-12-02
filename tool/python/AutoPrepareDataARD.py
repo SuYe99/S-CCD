@@ -263,10 +263,16 @@ def single_image_processing(tmp_path, source_dir, out_dir, folder, clear_thresho
 @click.option('--out_dir', type=str, default=None, help='the folder directory for ENVI outputs')
 @click.option('--threads_number', type=int, default=0, help='user-defined thread number')
 @click.option('--parallel_mode', type=str, default='desktop', help='desktop or HPC')
-@click.option('--clear_threshold', type=float, default=0.2, help='user-defined thread number')
+@click.option('--clear_threshold', type=float, default=0.2, help='user-defined clear pixel proportion')
 def main(source_dir, out_dir, threads_number, parallel_mode, clear_threshold):
-    source_dir = '/Users/coloury/Dropbox/transfer_landsat'
-    out_dir = '/Users/coloury/sccd_test'
+    # source_dir = '/Users/coloury/Dropbox/transfer_landsat'
+    # out_dir = '/Users/coloury/sccd_test'
+    if not os.path.exists(out_dir):
+         os.makedirs(out_dir)
+
+    if not os.path.exists(source_dir):
+         print('Source directory not exists!')
+
     if parallel_mode == 'desktop':
         tz = timezone('US/Eastern')
         logging.basicConfig(filename=os.path.join(os.getcwd(), 'AutoPrepareDataARD_{}.log'.format(datetime.
@@ -329,12 +335,6 @@ def main(source_dir, out_dir, threads_number, parallel_mode, clear_threshold):
 
         if rank == 0:
             tz = timezone('US/Eastern')
-            logging.basicConfig(filename=os.path.join(os.getcwd(), 'out_AutoPrepareDataARD_{}.log'.format(datetime.
-                                                                                                  fromtimestamp(time.time()).
-                                                                                                  strftime('%c').replace(" ", "_").
-                                                                                                  replace(":", "-"))), filemode='w+',
-                                level=logging.INFO)
-
             # logger = logging.getLogger(__name__)
             # logger.info('AutoPrepareDataARD starts: {}'.format(datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')))
             print('AutoPrepareDataARD starts: {}'.format(datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')))

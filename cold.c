@@ -223,6 +223,7 @@ int sccd_executor(
     short int auxval = 0;
     char maskval;
     int category;
+    double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
 //    BoosterHandle booster;
 //    DMatrixHandle eval_dmats[] = {};
 
@@ -585,7 +586,7 @@ int sccd_executor(
 
             rec_cg = malloc(NUM_FC * sizeof(Output_t));
             result = ccd(buf, fmask_buf, valid_date_array, valid_scene_count, rec_cg, &num_fc,
-                         meta->samples, col, row, probability_threshold);
+                         meta->samples, col, row, probability_threshold, s_tcg);
 
             /**********************************************************/
             /****************** write binary header **********************/
@@ -832,7 +833,7 @@ int sccd_executor(
 
             rec_cg = malloc(NUM_FC * sizeof(Output_t));
             result = ccd(buf, fmask_buf, valid_date_array, valid_scene_count, rec_cg, &num_fc,
-                         meta->samples, col, row, probability_threshold);
+                         meta->samples, col, row, probability_threshold, s_tcg);
             for(i = 0; i < num_fc + 1; i++)
             {
                 rec_cg[i].pos = 0;
@@ -995,7 +996,8 @@ int ccd
     int num_samples,            /* I: column number per scanline                    */
     int col_pos,                /* I: column position of current processing pixel   */
     int row_pos,                 /* I:raw position of current processing pixel */
-    double probability_threshold
+    double probability_threshold,
+    double s_tcg
 )
 {
     int clear_sum = 0;      /* Total number of clear cfmask pixels          */
@@ -1078,7 +1080,7 @@ int ccd
         /**************************************************************/
 
        result = stand_procedure(valid_num_scenes, valid_date_array, buf,
-                  fmask_buf, id_range, rec_cg, num_fc, probability_threshold);
+                  fmask_buf, id_range, rec_cg, num_fc, probability_threshold, s_tcg);
        //result = sccd_stand_procedure(valid_num_scenes, valid_date_array, buf,
                                           //fmask_buf, id_range, rec_cg, num_fc);
        // printf("stand procedure finished \n");
@@ -1125,7 +1127,8 @@ int stand_procedure
     int *id_range,
     Output_t *rec_cg,
     int *num_curve,                 /* O: Initialize NUM of Functional Curves    */
-    double probability_threshold
+    double probability_threshold,
+    double s_tcg
 )
 {
     int status;
@@ -1196,7 +1199,7 @@ int stand_procedure
     int *clrx;                  /* I: clear pixel curve in X direction (date)             */
     float **clry;               /* I: clear pixel curve in Y direction (spectralbands)    */
     double mean_angle;           /* I: mean angle of vec_diff                              */
-    double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
+    //double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
     int pre_end;
 
     fit_cft = (double **) allocate_2d_array (TOTAL_IMAGE_BANDS, LASSO_COEFFS,
@@ -3559,8 +3562,11 @@ int inefficientobs_procedure
 
         if (n_clr < N_TIMES * MIN_NUM_C)
         {
-            RETURN_ERROR("Not enough good clear observations\n",
-                        FUNC_NAME, FAILURE);
+	    // num_curve = 0, so won't output any curve
+	    *num_curve = *num_curve - 1;
+            //RETURN_ERROR("Not enough good clear observations\n",
+                        //FUNC_NAME, FAILURE);
+
         }
         else
         {
@@ -3775,6 +3781,7 @@ int ccd_scanline
     FILE *fauxval_bip;
     int category;
     int auxval;
+    double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
 //    gsl_matrix **ini_P;          /* initial P1 for each band */
 //    double *ini_H;              /* initial H for each band */
 //    gsl_matrix **ini_Q;          /* initial Q for each band */
@@ -4008,7 +4015,7 @@ int ccd_scanline
             rec_cg = malloc(NUM_FC * sizeof(Output_t));
             result = ccd(tmp_buf, tmp_fmask_buf, tmp_valid_date_array,
                          valid_scene_count_scanline[i_col], rec_cg, &num_fc, num_samples,
-                         i_col + 1, row, probability_threshold);
+                         i_col + 1, row, probability_threshold, s_tcg);
 
             if (result != SUCCESS)
             {

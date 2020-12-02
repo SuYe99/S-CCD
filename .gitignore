@@ -1,5 +1,6 @@
-.DS_Store
-bin/
-CCDC_C.pro
-CCDC_C.pro.user*
+/.DS_Store
+/bin/
+/tool/python/__pycache__
+/CCDC_C.pro
+/CCDC_C.pro.user*
 *.o
