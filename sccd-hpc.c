@@ -378,7 +378,6 @@ int main(int argc, char *argv[])
     int interval;
     short int *sensor_buf;
     double s_tcg;
-    // double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
 
 
     /* create custom type for CCDC output reccg_type*/
