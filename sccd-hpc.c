@@ -377,7 +377,8 @@ int main(int argc, char *argv[])
     short int tmp_sensor;
     int interval;
     short int *sensor_buf;
-    double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
+    double s_tcg;
+    // double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
 
 
     /* create custom type for CCDC output reccg_type*/
@@ -520,7 +521,6 @@ int main(int argc, char *argv[])
 //    printf("nprocess = %d\n", n_process);
 //    printf("process_id = %d\n", process_id);
 
-    // master process
     scene_list_1d = (char *)malloc(MAX_SCENE_LIST * ARD_STR_LEN * sizeof(char));
     if (scene_list_1d == NULL)
     {
@@ -543,6 +543,7 @@ int main(int argc, char *argv[])
     }
 
 
+    if(process_id == 0){
     /**************************************************************/
     /*                                                            */
     /*   record the start time of just the CDCD         */
@@ -550,8 +551,6 @@ int main(int argc, char *argv[])
     /*     setting it up......                                    */
     /*                                                            */
     /**************************************************************/
-
-    if(process_id == 0){
         time (&now);                 /*     intermediate times.                   */
         snprintf (msg_str, sizeof(msg_str), "CCDC start_time\n", ctime (&now));
 
@@ -559,22 +558,23 @@ int main(int argc, char *argv[])
         LOG_MESSAGE (msg_str, FUNC_NAME);
 
         printf("The actual assigned process number is %d\n", n_process);
-    }
+    
 
 
-    //printf("debug: step2\n");
-    /**************************************************************/
-    /*                                                            */
-    /*   read CCD variable                                        */
-    /*                                                            */
-    /**************************************************************/
-    result = get_variables_hpc(argc, argv, in_path, out_path,
-                            &METHOD, mask_path, &probability_threshold,
-                           &min_days_conse);
-    if(result == ERROR)
-    {
-         RETURN_ERROR("CCDC procedure fails. The program stops!", FUNC_NAME, FAILURE);
-    }
+    	//printf("debug: step2\n");
+    	/**************************************************************/
+    	/*                                                            */
+    	/*   read CCD variable                                        */
+    	/*                                                            */
+    	/**************************************************************/
+    	result = get_variables_hpc(argc, argv, in_path, out_path,
+                            	&METHOD, mask_path, &probability_threshold,
+                                &min_days_conse);
+    	if(result == ERROR)
+    	{
+         	RETURN_ERROR("CCDC procedure fails. The program stops!", FUNC_NAME, FAILURE);
+    	}
+
     //printf("debug: step3\n");
 
 //        if(n_process != n_cores * n_nodes)
@@ -584,114 +584,144 @@ int main(int argc, char *argv[])
 //                   "the request process number is %d)", n_process, n_cores * n_nodes);
 //        }
 
-    sprintf(scene_list_directory, "%s/%s", in_path, scene_list_filename);
+    	sprintf(scene_list_directory, "%s/%s", in_path, scene_list_filename);
 
-    if (access(scene_list_directory, F_OK) != 0) /* File does not exist */
-    {
-        status = create_scene_list(in_path, &num_scenes, scene_list_filename);
-        if(status != SUCCESS)
-        RETURN_ERROR("Running create_scene_list file", FUNC_NAME, FAILURE);
-    }
-    else
-    {
-        num_scenes = MAX_SCENE_LIST;
-    }
+    	if (access(scene_list_directory, F_OK) != 0) /* File does not exist */
+    	{
+            status = create_scene_list(in_path, &num_scenes, scene_list_filename);
+            if(status != SUCCESS)
+        	RETURN_ERROR("Running create_scene_list file", FUNC_NAME, FAILURE);
+    	}
+    	else
+    	{
+            num_scenes = MAX_SCENE_LIST;
+    	}
 
-    /**************************************************************/
-    /*                                                            */
-    /* Fill the scene list array with full path names.            */
-    /*                                                            */
-    /**************************************************************/
-    fd = fopen(scene_list_directory, "r");
-    if (fd == NULL)
-    {
-        RETURN_ERROR("Opening scene_list file", FUNC_NAME, FAILURE);
-    }
+    	/**************************************************************/
+    	/*                                                            */
+    	/* Fill the scene list array with full path names.            */
+    	/*                                                            */
+    	/**************************************************************/
+    	fd = fopen(scene_list_directory, "r");
+    	if (fd == NULL)
+    	{
+        	RETURN_ERROR("Opening scene_list file", FUNC_NAME, FAILURE);
+    	}
 
-    if (scene_list == NULL)
-    {
-        RETURN_ERROR("ERROR allocating scene_list memory", FUNC_NAME, FAILURE);
-    }
+    	for (i = 0; i < num_scenes; i++)
+    	{
+            if (fscanf(fd, "%s", tmpstr) == EOF)
+            	break;
+            strcpy(scene_list[i], tmpstr);
+    	}
+    	num_scenes = i;
 
-    for (i = 0; i < num_scenes; i++)
-    {
-        if (fscanf(fd, "%s", tmpstr) == EOF)
-            break;
-        strcpy(scene_list[i], tmpstr);
-    }
-    num_scenes = i;
+    	fclose(fd);
 
-    fclose(fd);
+    	sdate = (int *)malloc(num_scenes * sizeof(int));
 
-    sdate = (int *)malloc(num_scenes * sizeof(int));
-
-    if (sdate == NULL)
-    {
-        RETURN_ERROR("ERROR allocating sdate memory", FUNC_NAME, FAILURE);
-    }
+    	if (sdate == NULL)
+    	{
+        	RETURN_ERROR("ERROR allocating sdate memory", FUNC_NAME, FAILURE);
+    	}
 
 
-    /**************************************************************/
-    /*                                                            */
-    /* Sort scene_list based on year & julian_day, then do the    */
-    /* swath filter, but read it above first.                     */
-    /*                                                            */
-    /**************************************************************/
+    	/**************************************************************/
+    	/*                                                            */
+    	/* Sort scene_list based on year & julian_day, then do the    */
+    	/* swath filter, but read it above first.                     */
+    	/*                                                            */
+    	/**************************************************************/
 
-    status = sort_scene_based_on_year_doy_row(scene_list, num_scenes, sdate, ENVI_FORMAT);
-    if (status != SUCCESS)
-    {
-        RETURN_ERROR ("Calling sort_scene_based_on_year_jday",
+    	status = sort_scene_based_on_year_doy_row(scene_list, num_scenes, sdate, ENVI_FORMAT);
+    	if (status != SUCCESS)
+    	{
+        	RETURN_ERROR ("Calling sort_scene_based_on_year_jday",
                       FUNC_NAME, FAILURE);
-    }
+    	}
 
 
-    /* replicate scene_list as 1-d array to get them transported by mpi*/
+    	/* replicate scene_list as 1-d array to get them transported by mpi*/
 
-    for (i = 0; i < num_scenes; i++)
-    {
-        for(j = 0; j < ARD_STR_LEN; j++)
-           scene_list_1d[i * ARD_STR_LEN + j] = scene_list[i][j];
-    }
+    	for (i = 0; i < num_scenes; i++)
+    	{
+            for(j = 0; j < ARD_STR_LEN; j++)
+           	scene_list_1d[i * ARD_STR_LEN + j] = scene_list[i][j];
+    	}
 
-    status = read_envi_header(in_path, scene_list[0], meta);
-    if (status != SUCCESS)
-    {
-       RETURN_ERROR ("Calling read_envi_header",
+    	status = read_envi_header(in_path, scene_list[0], meta);
+    	if (status != SUCCESS)
+    	{
+       		RETURN_ERROR ("Calling read_envi_header",
                           FUNC_NAME, FAILURE);
-    }
+    	}
 
     //n_process = 48;
 
 
-    n_cols = meta->samples;
-    n_rows = meta->lines;
-    if(n_process > 1){
-        n_block = (int)(meta->lines  / n_process);
+    	n_cols = meta->samples;
+    	n_rows = meta->lines;
+    	if(n_process > 1){
+        	n_block = (int)(meta->lines  / n_process);
+    	}
+    	else{
+        	n_block = meta->lines;
+    	}
+
+    	n_remain_line = meta->lines -  n_block * n_process;
+    	interval = n_process;
+
+    	printf("The standard row number per block is %d; the remaining row is %d \n", n_block, n_remain_line);
+
+        int mpi_args[7] = {n_block, n_cols, n_rows, num_scenes, n_remain_line, interval, METHOD};
+        MPI_Bcast(mpi_args, 7, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&probability_threshold, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(scene_list_1d, num_scenes * ARD_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
+        MPI_Bcast(sdate, num_scenes, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(in_path, MAX_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
+        MPI_Bcast(out_path, MAX_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
+        MPI_Bcast(mask_path, MAX_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
     }
-    else{
-        n_block = meta->lines;
+    else
+    {
+        int mpi_args[7];
+        MPI_Bcast(mpi_args, 7, MPI_INT, 0, MPI_COMM_WORLD);
+        n_block = mpi_args[0];
+        n_cols = mpi_args[1];
+        n_rows = mpi_args[2];
+        num_scenes = mpi_args[3];
+        n_remain_line = mpi_args[4];
+        interval = mpi_args[5];
+        METHOD = mpi_args[6];
+        MPI_Bcast(&probability_threshold, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+        sdate = (int *)malloc(num_scenes * sizeof(int));
+
+        if (sdate == NULL)
+        {
+            RETURN_ERROR("ERROR allocating sdate memory", FUNC_NAME, FAILURE);
+        }
+
+
+        MPI_Bcast(scene_list_1d, num_scenes * ARD_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
+        //printf("debug: step4\n");
+
+        MPI_Bcast(sdate, num_scenes, MPI_INT, 0, MPI_COMM_WORLD);
+
+        //MPI_Bcast(&METHOD, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+        MPI_Bcast(in_path, MAX_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+        MPI_Bcast(out_path, MAX_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+        MPI_Bcast(mask_path, MAX_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+        for (i = 0; i < num_scenes; i++)
+        {
+            for(j = 0; j < ARD_STR_LEN; j++)
+               scene_list[i][j] = scene_list_1d[i * ARD_STR_LEN + j];
+        }
     }
-
-    n_remain_line = meta->lines -  n_block * n_process;
-    interval = n_process;
-
-    printf("The standard row number per block is %d; the remaining row is %d \n", n_block, n_remain_line);
-
-        //printf("debug: step5\n");
-
-
-
-
-        // MPI_Isend(sdate, num_scenes, MPI_INT, i, 9, MPI_COMM_WORLD, &reqs[0]);
-//        MPI_Ssend(buf, TOTAL_IMAGE_BANDS * meta->samples * num_scenes, MPI_INT16_T, i, 1, MPI_COMM_WORLD, &reqs[0]);
-//        MPI_Ssend(fmask_buf_scanline, meta->samples * num_scenes, MPI_INT16_T, i, 2, MPI_COMM_WORLD, &reqs[1]);
-//        MPI_Ssend(valid_scene_count_scanline, 1, MPI_INT, i, 3, MPI_COMM_WORLD, &reqs[2]);
-//        MPI_Ssend(num_scenes, 1, MPI_INT, i, 4, MPI_COMM_WORLD, &reqs[3]);
-//        MPI_Ssend(valid_date_array_scanline, meta->samples * num_scenes, MPI_INT, i, 5, MPI_COMM_WORLD, &reqs[4]);
-
-//        MPI_Waitall(5, reqs, MPI_STATUSES_IGNORE);
-
 
     // for debug
 //    if(process_id == 1)
@@ -785,7 +815,7 @@ int main(int argc, char *argv[])
     //process_id = n_remain_line;
 
 
-    if(process_id < n_remain_line + 1)
+    if(process_id < n_remain_line)
     {
         new_n_block = n_block + 1;
         //starting_row = new_n_block * (process_id);

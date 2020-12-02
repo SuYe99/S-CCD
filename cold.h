@@ -28,7 +28,8 @@ int ccd
     int num_samples,            /* I: column number per scanline                    */
     int col_pos,                /* I: column position of current processing pixel   */
     int row_pos,                /* I:raw position of current processing pixel */
-    double probability_threshold
+    double probability_threshold,
+    double s_tcg
 );
 
 
@@ -41,7 +42,8 @@ int stand_procedure
     int *id_range,
     Output_t *rec_cg,            /* O: CCDC result as recorded */
     int *num_curve,                   /* Intialize NUM of Functional Curves    */
-    double probability_threshold
+    double probability_threshold,
+    double s_tcg
 );
 
 int inefficientobs_procedure

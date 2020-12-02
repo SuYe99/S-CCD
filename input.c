@@ -427,7 +427,8 @@ int create_scene_list
         while ((dp = readdir(dirp)) != NULL)
         {
             if (strcmp(dp->d_name,".")!=0 && strcmp(dp->d_name,"..")!=0 && strcmp(dp->d_name,scene_list_filename)!=0){
-                  fprintf(fd, "%s\n", dp->d_name);
+                  // printf("%s\n", dp->d_name);
+		  fprintf(fd, "%s\n", dp->d_name);
                   scene_counter++;
             }
         }
