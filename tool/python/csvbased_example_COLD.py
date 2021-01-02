@@ -1,18 +1,16 @@
+# this script show how to run COLD from a csv file that store time series information
 import pysccd
 import numpy as np
 import os
 import pandas as pd
 import time
-import matplotlib.pyplot as plt
 import seaborn as sns
-from pandas.plotting import register_matplotlib_converters
-register_matplotlib_converters()
 import datetime
 from datetime import date
 
 mode = 4
-in_path = '/Users/coloury/Dropbox/Documents/QTProjects/CCDC_C/test/spectral_336_3980_obs.csv' # please change as needed
-out_path = '/Users/coloury/Dropbox/Documents/QTProjects/CCDC_C/test' # please change as needed
+in_path = '/Users/coloury/Dropbox/Documents/QTProjects/S-CCD/test/spectral_336_3980_obs.csv' # please change as needed
+out_path = '/Users/coloury/Dropbox/Documents/QTProjects/S-CCD/test' # please change as needed
 probability = 0.95
 min_days_conse = 80
 row = 1 # won't affect the result for csv-based processing
@@ -31,4 +29,7 @@ ret = pysccd.py_sccd(mode, in_path.encode('ascii'), out_path.encode('ascii'), \
 
 # extract base name
 basename = os.path.splitext(os.path.basename(in_path))[0]
+
+# read .dat file
 ccd_plot = np.fromfile(os.path.join(out_path, basename + '_ccd.dat'), dtype=sccd_dt)
+print(ccd_plot)

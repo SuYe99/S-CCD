@@ -3986,6 +3986,7 @@ int step3_processingend
         rec_cg[*num_curve].t_end = clrx[*end -1];
         rec_cg[*num_curve].category = 0;
         rec_cg[*num_curve].t_start = clrx[i_start];
+        rec_cg[*num_curve].t_confirmed = 0;
 
         for (k = 0; k < conse_end; k++)
         {
@@ -4133,7 +4134,7 @@ int step3_processingend
 
 //                        matlab_2d_double_median(v_dif, b, conse,
 //                                               &medium_v_dif[b]);  // for cold disturbance extraction
-                    quick_sort_double(v_dif_tmp[b], 0, conse_end - i_conse);
+                    quick_sort_double(v_dif_tmp[b], 0, conse_end - i_conse - 1);
                     matlab_2d_double_median(v_dif_tmp, b, conse_end - i_conse, &medium_v_dif[b]);
                     // sum_median_tmp = sum_median_tmp + medium_v_dif[b] * medium_v_dif[b];
 

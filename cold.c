@@ -2717,7 +2717,7 @@ int stand_procedure
                     rec_cg[*num_curve].t_break = clrx[i];
                     rec_cg[*num_curve].change_prob = 100;
                     if ((i_start - 1 + adj_conse) < end)
-                        rec_cg[*num_curve].t_confirmed = clrx[i_start + adj_conse - 1];
+                        rec_cg[*num_curve].t_confirmed = clrx[i + adj_conse - 1];
                     else
                         rec_cg[*num_curve].t_confirmed = clrx[end - 1];
 

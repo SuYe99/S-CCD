@@ -1,6 +1,13 @@
 /.DS_Store
 /bin/
+/libsccd.so.dSYM/
 /tool/python/__pycache__
 /CCDC_C.pro
 /CCDC_C.pro.user*
+/tool/python/pysccd.cpython-36m-darwin.so
+/libsccd.so.dSYM/Contents/Resources/DWARF/libsccd.so
 *.o
+/tool/.DS_Store
+/tool/python/libsccd.so
+/tool/python/variables
+/tool/python/pysccd.cpython-36m-darwin.so

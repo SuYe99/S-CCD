@@ -13,7 +13,7 @@ FORTRAN =gfortran
 RM = rm -f
 MV = mv
 EXTRA = -Wall -Wextra -g
-FFLAGS= -g
+FFLAGS= -g -fPIC
 LFLAGS= -fopenmp
 
 # Define the include files

@@ -1,3 +1,4 @@
+# this script show how to run SCCD or COLD for a single pixel from ENVI-formated Landsat time series
 import pysccd
 import numpy as np
 import os
@@ -23,8 +24,7 @@ output_mode = 11 # 11: both output; 1: output states; 10: output observation fil
 bandselection_bit = 62 # the bit value for the default spectral inputs, namely green, red, nir, SWIR1 and SWIR2
 sccd_dt = np.dtype([('t_start', np.int32), ('t_end', np.int32), ('t_break', np.int32), ('pos', np.int32), ('num_obs', np.int32),
                ('category', np.int16), ('land_type', np.int16), ('t_confirmed', np.int32), ('change_prob', np.int32),
-               ('coef', np.double, (7, 6)), ('obs_disturbance', np.double, (7, 1)),
-               ('state_disturbance', np.double, (7, 5)), ('rmse', np.double, (7, 1)), ('magnitude', np.double, (7, 1))])
+               ('coef', np.double, (7, 6)), ('rmse', np.double, (7, 1)), ('magnitude', np.double, (7, 1))])
 
 ret = pysccd.py_sccd(mode, in_path.encode('ascii'), out_path.encode('ascii'), \
                     row, col, method, bandselection_bit, user_mask_path.encode('ascii'),

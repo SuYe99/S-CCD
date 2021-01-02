@@ -1,3 +1,4 @@
+# this script show how to run SCCD or COLD from python
 import pysccd
 import numpy as np
 import os
