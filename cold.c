@@ -3781,8 +3781,8 @@ int ccd_scanline
     FILE *fauxval_bip;
     int category;
     int auxval;
-//    double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
-    double s_tcg = 11.07;
+    double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
+    // double s_tcg = 11.07;
 //    gsl_matrix **ini_P;          /* initial P1 for each band */
 //    double *ini_H;              /* initial H for each band */
 //    gsl_matrix **ini_Q;          /* initial Q for each band */
@@ -3991,7 +3991,7 @@ int ccd_scanline
     for(i_col = 0; i_col < num_samples; i_col++)
     {
         /*for test */
-        printf("%d\n", i_col);
+        // printf("%d\n", i_col);
         // if user mask exists
         if (isUserMaskExist)
         {
