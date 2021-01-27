@@ -629,7 +629,7 @@ int get_variables
     {
         getcwd(cwd, sizeof(cwd));
         //printf("getvariable");
-        sprintf(var_path, "%s/%s", cwd, "variables"); //HLS
+        sprintf(var_path, "%s/%s", cwd, "variables");
     }
     else if(argc == 2)
     {

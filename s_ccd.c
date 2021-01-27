@@ -1315,11 +1315,12 @@ int step1_ccd_initialize
         /*                                            */
         /**********************************************/
 
-        for(i_ini = *i_start - 2; i_ini >= *prev_i_break - 1; i_ini--) // SY 09192018
+        for(i_ini = *i_start - 1; i_ini >= *prev_i_break; i_ini--) // SY 09192018
         {
-            if ((*i_start - *prev_i_break) < conse)
+            // printf("ini is %d\n", i_ini);
+            if (i_ini - *prev_i_break + 1 < conse)
             {
-                ini_conse = *i_start - *prev_i_break;
+                ini_conse = i_ini - *prev_i_break + 1;
             }
             else
             {
@@ -1379,6 +1380,7 @@ int step1_ccd_initialize
                     // SY 09192018 moving fitting into (i_b == focus_blist[b])to save time //
                     // SY 02/13/2019 delete these speed-up modification as non-lasso bands
                     // are important for change agent classification
+                    // printf("i_b = %d\n", i_b);
                     auto_ts_predict(clrx, fit_cft, update_num_c, i_b, i_ini-i_conse+1,
                                     i_ini-i_conse+1, &ts_pred_temp);
                     v_dif_mag[i_b][i_conse-1] = (double)clry[i_b][i_ini-i_conse+1] -
@@ -1433,6 +1435,13 @@ int step1_ccd_initialize
 
             if ((vec_magg_min > reg_TCG) && (mean_angle < NSIGN)) /* i_start found*/
             {
+                free(vec_magg);
+                status = free_2d_array ((void **) v_diff);
+                if (status != SUCCESS)
+                {
+                    RETURN_ERROR ("Freeing memory: v_diff\n",
+                                  FUNC_NAME, FAILURE);
+                }
                 break;
             }
             else if ((vec_magg[0] > T_MAX_CG) && (i_ini > *prev_i_break)) /* false change */
@@ -1512,7 +1521,7 @@ int step1_ccd_initialize
 
         }
 
-        ini_conse = conse;
+        ini_conse = CONSE;
 
         v_dif_magg = (double **) allocate_2d_array(n_total_variable,
                     ini_conse, sizeof (double));
@@ -1523,7 +1532,7 @@ int step1_ccd_initialize
         }
 
 
-        for (i_conse = 0; i_conse < ini_conse; i_conse++) // SY 09192018
+        for (i_conse = 1; i_conse < ini_conse + 1; i_conse++) // SY 09192018
         {
             v_dif_norm = 0.0;
             for (i_b = 0; i_b < n_total_variable; i_b++)
@@ -1538,9 +1547,9 @@ int step1_ccd_initialize
                 // SY 09192018 moving fitting into (i_b == focus_blist[b])to save time //
                 // SY 02/13/2019 delete these speed-up modification as non-lasso bands
                 // are important for change agent classification
-                auto_ts_predict(clrx, fit_cft, update_num_c, i_b, *i_start-i_conse-1,
-                                *i_start-i_conse-1, &ts_pred_temp);
-                v_dif_magg[i_b][i_conse] = (double)clry[i_b][*i_start-i_conse-1] -
+                auto_ts_predict(clrx, fit_cft, update_num_c, i_b, *i_start-i_conse,
+                                *i_start-i_conse, &ts_pred_temp);
+                v_dif_magg[i_b][i_conse - 1] = (double)clry[i_b][*i_start-i_conse] -
                                    ts_pred_temp;// SY 09192018
 
             }
@@ -3760,11 +3769,13 @@ int step3_processingend
     w = TWO_PI / AVE_DAYS_IN_A_YEAR;
     w2 = 2.0 * w;
     int conse_end = *end - cur_i;
+    if (conse_end <= 0)
+        conse_end = 0;
     if(conse_end < CONSE)
         t_cg_adjust = X2(n_focus_variable, probability_threshold);
     else
         t_cg_adjust = X2(n_focus_variable, 1 - pow(1 - probability_threshold, (double)CONSE / (double)conse_end));
-    //double t_cg_adjust = 11.07;
+    //t_cg_adjust = 11.07;
 
     v_dif_mag_standard = (double **) allocate_2d_array (n_total_variable, conse_end, sizeof (double));
     if (v_dif_mag_standard == NULL)
@@ -4161,6 +4172,21 @@ int step3_processingend
                 /**************************************************/
 
                 id_last = cur_i + i_conse + 1;
+                status = free_2d_array ((void **) v_dif_tmp);
+                if (status != SUCCESS)
+                {
+                    RETURN_ERROR ("Freeing memory: v_dif_tmp\n",
+                                  FUNC_NAME, FAILURE);
+                }
+
+                status = free_2d_array ((void **) v_dif);
+                if (status != SUCCESS)
+                {
+                    RETURN_ERROR ("Freeing memory: v_dif\n",
+                                  FUNC_NAME, FAILURE);
+                }
+
+                free(medium_v_dif);
                 break;
             }
             status = free_2d_array ((void **) v_dif_tmp);
@@ -4340,6 +4366,7 @@ int step3_processingend
         } // if (*end - i_start >= CONSE_END)
         else
         {
+	    //printf("delete num curve = %d \n", *num_curve);
             // delete this curve
             *num_curve = *num_curve - 1;
         }
@@ -4770,7 +4797,7 @@ int sccd_stand_procedure
             }
         }
     }
-
+    // printf("n_clr is %d", n_clr);
 
     if(user_n_total_variable > TOTAL_IMAGE_BANDS){
         clry_col_count = 7;
@@ -4988,6 +5015,9 @@ int sccd_stand_procedure
     /**************************************************************/
 
     i = N_TIMES * (MID_NUM_C)  - 1;
+    if (i > end){
+        i = end;
+    }
     i_copy = i;
 
     /**************************************************************/
@@ -5062,7 +5092,7 @@ int sccd_stand_procedure
     /* While loop - process til the last clear observation - conse*/
     /*                                                            */
     /**************************************************************/
-    while (clrx[end - 1] - clrx[i - 1] > min_days_conse)
+    while ((clrx[end - 1] - clrx[i - 1] > min_days_conse) && (i + CONSE - 1 < end))
     {
         if(0 == bl_train_complete)
         {
@@ -5268,6 +5298,7 @@ int sccd_stand_procedure
 
                     }
                     t_cg_outelier = X2(n_focus_variable, S_T_MAX_CG_PROB);
+                    //t_cg_outelier = 35;
                     status =  step1_update_cft(adj_conse, adj_rmse, n_clr, t_cg_adjust, clrx, clry, i, i_start,
                                                tmp_fit_cft, rec_cg, rmse_ini, num_curve, end, &prev_i_break,
                                                n_focus_variable, n_total_variable, focus_blist, t_cg_outelier);
@@ -5498,7 +5529,7 @@ int sccd_stand_procedure
             //t_cg_adjust = X2(n_focus_variable, 1 - pow(1 - S_TCG, (double)CONSE / (double)adj_conse));
 
             t_cg_outelier = X2(n_focus_variable, S_T_MAX_CG_PROB);
-            //t_cg_outelier = 35;
+            // t_cg_outelier = 35;
 //            int tt;
 //            tt = clrx[i];
 

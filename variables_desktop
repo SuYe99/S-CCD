@@ -1,6 +1,6 @@
 mode=1
-in_path=/scratch/suy20004/envi_h14v10
-out_path=/scratch/suy20004/COLD_h14v10
+in_path=/scratch/suy20004/h011v009_stack
+out_path=/scratch/suy20004/h011v009_sccd
 n_cores=1
 user_mask_path=
 row=1

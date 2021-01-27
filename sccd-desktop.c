@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     //int variable_count = 0;
     int n_focus_variable = 0;
     int n_total_variable = TOTAL_IMAGE_BANDS;
-    int focus_blist[TOTAL_IMAGE_BANDS + TOTAL_INDICES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int focus_blist[TOTAL_IMAGE_BANDS + TOTAL_INDICES] = {0, 0, 0, 0, 0, 0, 0};
     bool NDVI_INCLUDED = FALSE;
     bool NBR_INCLUDED = FALSE;
     bool RGI_INCLUDED = FALSE;
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
                            &min_days_conse, &b_fastmode, &b_outputCSV, &training_type,
                            &monitorwindow_lowerlin, &monitorwindow_upperlim, &bandselection_bit,
                            &classification_config);
-    double s_tcg = X2(user_n_focus_variable, user_probability_threshold);
+    double s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
 //    result = get_args(argc, argv, &mode, in_path, out_path, &n_cores, &row,
 //                      &col, &METHOD, mask_path, &probability_threshold,
 //                      &min_days_conse, &b_fastmode, &output_mode);
@@ -198,13 +198,13 @@ int main(int argc, char *argv[])
     }
     if (mode < 4)
     {
-        sprintf(scene_list_directory, "%s/%s", out_path, scene_list_filename);
+        sprintf(scene_list_directory, "%s/%s", in_path, scene_list_filename);
 
 
         if (access(scene_list_directory, F_OK) != 0) /* File does not exist */
         {
 //            if (format == ENVI_FORMAT){
-                status = create_scene_list(out_path, &num_scenes, scene_list_filename);
+                status = create_scene_list(in_path, &num_scenes, scene_list_filename);
                 if(status != SUCCESS)
                     RETURN_ERROR("Running create_scene_list file", FUNC_NAME, FAILURE);
 //            }
@@ -748,7 +748,7 @@ int main(int argc, char *argv[])
 
             rec_cg = malloc(NUM_FC * sizeof(Output_t));
             result = ccd(buf, fmask_buf, valid_date_array, valid_scene_count, rec_cg, &num_fc,
-                         meta->samples, col, row, probability_threshold);
+                         meta->samples, col, row, probability_threshold, s_tcg);
             for(i = 0; i < num_fc + 1; i++)
             {
                 rec_cg[i].pos = 0;

@@ -168,8 +168,8 @@ int sccd_hpc
     bool b_fastmode = TRUE;
     char* states_output_dir;
     int training_type = 0; /* '0' is normal */
-    int monitorwindow_lowerlin;  /* for training process*/
-    int monitorwindow_upperlim;   /* for training process*/
+    int monitorwindow_lowerlin = 0;  /* for training process*/
+    int monitorwindow_upperlim = 0;   /* for training process*/
     int n_focus_variable = DEFAULT_N_FOCUS_VARIABLE;
     int n_total_variable = TOTAL_IMAGE_BANDS;
     int focus_blist[TOTAL_IMAGE_BANDS] = {1, 2, 3, 4, 5};
@@ -220,21 +220,22 @@ int sccd_hpc
         rec_cg[i].pos = num_samples * (row_pos - 1) + col_pos;
 
         //the below is to initialize
-        rec_cg[i].category = -9999;
-        //rec_cg[i].land_type = 0;
+        rec_cg[i].category = NA_VALUE;
+        rec_cg[i].land_type = NA_VALUE;
 
         for (j = 0; j < TOTAL_IMAGE_BANDS+TOTAL_INDICES; j++){
-            rec_cg[i].obs_disturb[j] = NA_VALUE;
+            // rec_cg[i].obs_disturb[j] = NA_VALUE;
             rec_cg[i].rmse[j] = NA_VALUE;
             rec_cg[i].magnitude[j] = NA_VALUE;
-            for(k = 0; k < SCCD_MAX_NUM_C - 1; k++){
-                rec_cg[i].state_disturb[j][k] = NA_VALUE;
+            for(k = 0; k < SCCD_MAX_NUM_C; k++){ 
+                // rec_cg[i].state_disturb[j][k] = NA_VALUE;
                 rec_cg[i].coefs[j][k] = NA_VALUE;
             }
-            rec_cg[i].coefs[j][SCCD_MAX_NUM_C - 1] = NA_VALUE;
+            
         }
     }
 
+    //printf("num_fc_initial is %d\n", *num_fc);
     if (clear_sum < N_TIMES * MAX_NUM_C){
         result = sccd_inefficientobs_procedure(valid_num_scenes,valid_date_array, buf,
                                  fmask_buf, id_range,sn_pct,rec_cg, num_fc);
@@ -393,13 +394,12 @@ int main(int argc, char *argv[])
     /* s-ccd */
     Output_t_sccd rec_cg_scanline_Sample_sccd[1]; /* for calculating disp */
     MPI_Datatype mpi_reccg_type_sccd;
-    MPI_Datatype mpi_elem_type_sccd[14] = { MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT,
+    MPI_Datatype mpi_elem_type_sccd[12] = { MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT,
                                             MPI_SHORT, MPI_SHORT, MPI_INT, MPI_INT, MPI_DOUBLE,
-                                            MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE};
-    int blocklen_sccd[14] = {1, 1, 1, 1, 1, 1, 1, 1, 1, TOTAL_IMAGE_BANDS*SCCD_MAX_NUM_C,
-                             TOTAL_IMAGE_BANDS, TOTAL_IMAGE_BANDS * (SCCD_MAX_NUM_C - 1),
+                                            MPI_DOUBLE, MPI_DOUBLE};
+    int blocklen_sccd[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, TOTAL_IMAGE_BANDS * SCCD_MAX_NUM_C,
                              TOTAL_IMAGE_BANDS, TOTAL_IMAGE_BANDS};
-    MPI_Aint disp_sccd[14];
+    MPI_Aint disp_sccd[12];
 
 
 
@@ -483,22 +483,9 @@ int main(int argc, char *argv[])
             + sizeof(rec_cg_scanline_Sample_sccd[0].num_obs) + sizeof(rec_cg_scanline_Sample_sccd[0].category)
             + sizeof(rec_cg_scanline_Sample_sccd[0].land_type) + sizeof(rec_cg_scanline_Sample_sccd[0].t_confirmed)
             + sizeof(rec_cg_scanline_Sample_sccd[0].change_prob) + sizeof(rec_cg_scanline_Sample_sccd[0].coefs)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].obs_disturb);
-    disp_sccd[12] = sizeof(rec_cg_scanline_Sample_sccd[0].t_start) + sizeof(rec_cg_scanline_Sample_sccd[0].t_end)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].t_break) + sizeof(rec_cg_scanline_Sample_sccd[0].pos)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].num_obs) + sizeof(rec_cg_scanline_Sample_sccd[0].category)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].land_type) + sizeof(rec_cg_scanline_Sample_sccd[0].t_confirmed)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].change_prob) + sizeof(rec_cg_scanline_Sample_sccd[0].coefs)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].obs_disturb) + sizeof(rec_cg_scanline_Sample_sccd[0].state_disturb);
-    disp_sccd[13] = sizeof(rec_cg_scanline_Sample_sccd[0].t_start) + sizeof(rec_cg_scanline_Sample_sccd[0].t_end)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].t_break) + sizeof(rec_cg_scanline_Sample_sccd[0].pos)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].num_obs) + sizeof(rec_cg_scanline_Sample_sccd[0].category)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].land_type) + sizeof(rec_cg_scanline_Sample_sccd[0].t_confirmed)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].change_prob) + sizeof(rec_cg_scanline_Sample_sccd[0].coefs)
-            + sizeof(rec_cg_scanline_Sample_sccd[0].obs_disturb) + sizeof(rec_cg_scanline_Sample_sccd[0].state_disturb)
             + sizeof(rec_cg_scanline_Sample_sccd[0].rmse);
 
-    MPI_Type_create_struct(14, blocklen_sccd, disp_sccd, mpi_elem_type_sccd, &mpi_reccg_type_sccd);
+    MPI_Type_create_struct(12, blocklen_sccd, disp_sccd, mpi_elem_type_sccd, &mpi_reccg_type_sccd);
     MPI_Type_commit(&mpi_reccg_type_sccd);
     MPI_Type_create_struct(11, blocklen, disp, mpi_elem_type, &mpi_reccg_type);
     MPI_Type_commit(&mpi_reccg_type);
@@ -675,6 +662,7 @@ int main(int argc, char *argv[])
         int mpi_args[7] = {n_block, n_cols, n_rows, num_scenes, n_remain_line, interval, METHOD};
         MPI_Bcast(mpi_args, 7, MPI_INT, 0, MPI_COMM_WORLD);
         MPI_Bcast(&probability_threshold, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&min_days_conse, 1, MPI_INT, 0, MPI_COMM_WORLD);
         MPI_Bcast(scene_list_1d, num_scenes * ARD_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
         MPI_Bcast(sdate, num_scenes, MPI_INT, 0, MPI_COMM_WORLD);
         MPI_Bcast(in_path, MAX_STR_LEN, MPI_CHAR, 0, MPI_COMM_WORLD);
@@ -693,7 +681,7 @@ int main(int argc, char *argv[])
         interval = mpi_args[5];
         METHOD = mpi_args[6];
         MPI_Bcast(&probability_threshold, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
+	MPI_Bcast(&min_days_conse, 1, MPI_INT, 0, MPI_COMM_WORLD);
         sdate = (int *)malloc(num_scenes * sizeof(int));
 
         if (sdate == NULL)
@@ -856,6 +844,7 @@ int main(int argc, char *argv[])
 
     int current_row;
     // for(current_row = starting_row; current_row < starting_row + new_n_block; current_row++)
+    s_tcg = X2(NUM_LASSO_BANDS, probability_threshold);
     for(j = 0; j < new_n_block; j++)
     {
 
@@ -1061,10 +1050,11 @@ int main(int argc, char *argv[])
                 s_rec_cg = malloc(NUM_FC * sizeof(Output_t_sccd));
                 if (s_rec_cg == NULL)
                 {
-                    RETURN_ERROR ("ERROR allocating rec_cg",
+                    RETURN_ERROR ("ERROR allocating s_rec_cg",
                                   FUNC_NAME, FAILURE);
                 }
 
+		//printf("probability threshold is %f\n", probability_threshold);
                 result = sccd_hpc(tmp_buf_2d, fmask_buf_scanline[i_col], valid_date_array_scanline[i_col], valid_scene_count_scanline[i_col],
                                   s_rec_cg, &num_fc,n_cols, i_col + 1, current_row + 1, probability_threshold, min_days_conse, sensor_buf);
                 //printf("free stage 9 \n");
