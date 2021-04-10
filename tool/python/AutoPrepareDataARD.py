@@ -154,7 +154,7 @@ def single_image_processing(tmp_path, source_dir, out_dir, folder, clear_thresho
         proc_params = Parameters(parameter.defaults)
         QA_band_unpacked = qabitval_array(QA_band, proc_params)
         clear_ratio = np.sum(np.logical_or(QA_band_unpacked == proc_params.QA_CLEAR - 1,
-                                           QA_band_unpacked == proc_params.QA_WATER - 1)) / np.sum(QA_band_unpacked != proc_params.QA_FILL)
+                                           QA_band_unpacked == proc_params.QA_WATER - 1)) / np.sum(QA_band_unpacked != 255)
         if clear_ratio > clear_threshold:
             if folder[3] == '5':
                 sensor = 'LT5'
